@@ -1,0 +1,16 @@
+version: "3"
+services:
+  app2:
+    build:
+      context: .
+      dockerfile: ./Dockerfile2
+    ports:
+      - 127.0.0.1:8002:8000
+    networks:
+      - saga_introduction_kafkanetwork
+    volumes:
+      - ${PWD}/src2/app/db.sqlite3:/code/app/db.sqlite3
+
+networks:
+  saga_introduction_kafkanetwork:
+    external: true

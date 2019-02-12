@@ -1,0 +1,44 @@
+version: "3"
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.0.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+    - kafkanetwork
+  kafka:
+    image: confluentinc/cp-kafka:5.0.0
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    links:
+      - zookeeper
+    networks:
+      - kafkanetwork
+
+  kafka_wait:
+    image: confluentinc/cp-kafka
+    links:
+      - kafka
+    command: sh -c "while ! cub kafka-ready -b kafka:9092 1 1; do sleep 1; done"
+    networks:
+      - kafkanetwork
+
+  consumer:
+    build:
+      context: .
+      dockerfile: ./DockerfileConsumer
+    volumes:
+      - ./src_consumer:/code/src
+    ports:
+      - 127.0.0.1:5002:5000
+    links:
+      - kafka_wait
+    networks:
+      - kafkanetwork
+
+networks:
+  kafkanetwork:
